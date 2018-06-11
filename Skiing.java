@@ -4,10 +4,10 @@ import java.io.IOException;
 
 class Skiing {
   static Node[][] node;
-  static short deepest = 0, steepest = 0;
+  static short deepest = 0, steepest = 0, xLength = 0, yLength = 0;
   public static void main(String args[]) {
     BufferedReader reader;
-    short lineIndicator = 0, xLength = 0, yLength = 0;
+    short lineIndicator = 0;
 
     try {
       reader = new BufferedReader(new FileReader("map.txt"));
@@ -33,55 +33,80 @@ class Skiing {
       e.printStackTrace();
     }
 
-    for (short i = (short)(xLength - 1); i >= 0; i--) {
-      for (short j = (short)(yLength - 1); j >= 0; j--) {
-        skiing(j, i, (short)(1), node[j][i].value);
+    for (short i = 0; i < (short)(xLength); i++) {
+      for (short j = 0; j < (short)(yLength); j++) {
+        skis(i, j, (short)(1));
       }
     }
-
     System.out.println("Longest: " + deepest + ", Steepest: " + steepest);
     System.out.println("Email: " + deepest + steepest + "@redmart.com");
   }
 
-  static void skiing(short x, short y, short depth, short deepestValue) {
-    if (node[x][y].depth < depth) {
-      node[x][y].depth = depth;
+  static Node skis(short x, short y, short depth) {
+    Node n = new Node();
+    short leftDepth = 0, rightDepth = 0, bottomDepth = 0, deepestValue = node[x][y].value, leftDeepestValue = 0, bottomDeepestValue = 0, rightDeepestValue = 0;
 
-      if (node[x][y].deepestValue > deepestValue) {
-  			node[x][y].deepestValue = deepestValue;
-  		}
+    if (y > 0) {
+      if (node[x][y].value > node[x][y-1].value) {
+        n = skis(x, (short)(y-1), (short)(depth+1));
+        leftDepth += n.depth;
+        leftDeepestValue = n.deepestValue;
+      } else {
+        leftDeepestValue = node[x][y].value;
+      }
     }
 
-    node[x][y].steep = (short)(node[x][y].value - node[x][y].deepestValue);
+    if (x < (short)(xLength-1)) {
+      if (node[x][y].value > node[x+1][y].value) {
+        n = skis((short)(x+1), y, (short)(depth+1));
+        bottomDepth += n.depth;
+        bottomDeepestValue = n.deepestValue;
+      } else {
+        bottomDeepestValue = node[x][y].value;
+      }
+    }
 
-    if (depth > deepest) {
-  		deepest = depth;
-  		steepest = node[x][y].steep;
-  	}
+    if (y < (short)(yLength-1)) {
+      if (node[x][y].value > node[x][y+1].value) {
+        n = skis(x, (short)(y+1), (short)(depth+1));
+        rightDepth += n.depth;
+        rightDeepestValue = n.deepestValue;
+      } else {
+        rightDeepestValue = node[x][y].value;
+      }
+    }
 
-    if (depth == deepest) {
+    if (depth < leftDepth) {
+      depth = leftDepth;
+      deepestValue = leftDeepestValue;
+    }
+
+    if (depth < bottomDepth) {
+      depth = bottomDepth;
+      deepestValue = bottomDeepestValue;
+    }
+
+    if (depth < rightDepth) {
+      depth = rightDepth;
+      deepestValue = rightDeepestValue;
+    }
+
+    node[x][y].deepestValue = n.deepestValue = deepestValue;
+    node[x][y].depth = n.depth = depth;
+    node[x][y].steep = (short)(node[x][y].value - deepestValue);
+
+    if (deepest == node[x][y].depth) {
       if (steepest < node[x][y].steep) {
         steepest = node[x][y].steep;
       }
     }
 
-    if (y > 0) {
-      if (node[x][y].value < node[x][y-1].value) {
-        skiing(x, (short)(y-1), (short)(depth+1), deepestValue);
-      }
+    if (deepest < node[x][y].depth) {
+      deepest = node[x][y].depth;
+      steepest = node[x][y].steep;
     }
 
-    if (y < 3) {
-  		if (node[x][y].value < node[x][y+1].value) {
-  			skiing(x, (short)(y+1), (short)(depth+1), deepestValue);
-  		}
-  	}
-
-  	if (x > 0) {
-  		if (node[x][y].value < node[x-1][y].value) {
-  			skiing((short)(x-1), y, (short)(depth+1), deepestValue);
-  		}
-  	}
+    return n;
   }
 }
 
